@@ -5,9 +5,9 @@ import imutils
  
 # load the Tetris block image, convert it to grayscale, and threshold
 # the image
-image = cv2.imread("/home/zak/Downloads/CV_and_DL/DL-in-Computer-vision/CV2_basics/contours_tetris_blocks.png")
+image = cv2.imread("/home/zak/Downloads/CV_and_DL/DL-in-Computer-vision/CV2_basics/more_shapes_example.png")
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-thresh = cv2.threshold(gray, 225, 255, cv2.THRESH_BINARY_INV)[1]
+thresh = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY)[1]
 
 # show the original and thresholded images
 cv2.imshow("Original", image)
