@@ -31,9 +31,10 @@ print("wrap around: {}".format(str(np.uint8([50]) - np.uint8([100]))))
 # our matrix (filled with ones) and the multiplying it by 100 to create an
 # array filled with 100's, then we simply add the images together; notice
 # how the image is "brighter"
-M = np.ones(image.shape, dtype = "uint8") * 100
+M = np.ones(image.shape, dtype = "uint8") * 75
 added = cv2.add(image, M)
 cv2.imshow("Added", added)
+print(added[152, 61])
 
 # similarly, we can subtract 50 from all pixels in our image and make it
 # darker
