@@ -24,7 +24,8 @@ def next_batch(X, y, batchSize):
 
 ap = argparse.ArgumentParser()
 ap.add_argument('-e', '--epochs', type=float, default=100, help='# of epochs')
-ap.add_argument('-a', '--alpha', type=float, default=0.001, help='learning rate')
+ap.add_argument('-a', '--alpha', type=float, default=0.01, help='learning rate')
+ap.add_argument('-b', '--batch_size', type=int, default=32, help='Size of SGD mini-batch')
 args = vars(ap.parse_args())
 
 # generate a 2-class classification problem with 1,000 data points, where each data point
@@ -42,14 +43,25 @@ losses = []
 
 # loop over the desired number of epochs
 for epoch in np.arange(0, args['epochs']):
-    preds = sigmoid_activation(trainX.dot(W))
+    # initialize the total loss for the epoch
+    epochLoss = []
 
-    error = preds - trainY
-    loss = np.sum(error ** 2)
+    # loop over our data in batches
+    for (batchX, batchY) in next_batch(X, y, args['batch_size']):
+        # take the dot product between our currrent batch of features
+        # and the weight matrix, then pass this value throough our
+        # activate function
+        preds = sigmoid_activation(batchX.dot(W))
+
+        error = preds - batchY
+        epochLoss.append(np.sum(error ** 2))
+
+
+        gradient = batchX.T.dot(error)
+        W += -args['alpha'] * gradient
+
+    loss = np.average(epochLoss)
     losses.append(loss)
-
-    gradient = trainX.T.dot(error)
-    W += -args['alpha'] * gradient
 
     if epoch == 0 or (epoch+1) % 5 == 0:
         print('[INFO] epoch={}, loss={:.7f}'.format(int(epoch + 1), loss))
