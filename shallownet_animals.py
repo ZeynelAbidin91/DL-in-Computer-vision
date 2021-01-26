@@ -30,7 +30,7 @@ class SimplePreprocessor:
 
     def preprocess(self, image):
         # resize the image to a fixed size, ignoring the aspect ratio
-        return cv2.resize(image, (self.width, self.width, self.height),
+        return cv2.resize(image, (self.width, self.height),
                          interpolation=self.inter)
 
 class ImageToArrayPreprocessor:
@@ -42,6 +42,51 @@ class ImageToArrayPreprocessor:
         # apply the Keras utility function that correctly 
         # rearranges the dimensions of the image
         return img_to_array(image, data_format=self.dataFormat)
+
+class SimpleDatasetLoader:
+    def __init__(self, preprocessors=None):
+        # store the image preprocessor
+        self.preprocessors = preprocessors
+        
+        # if the preprocessors are None, initialize them as an
+        # empty list
+
+        if self.preprocessors is None:
+            self.preprocessors = []
+
+    def load(self, imagePaths, verbose=-1):
+        # initialize the list of features and labels
+        data = []
+        labels = []
+
+        # loop over the input images
+        for (i, imagePath) in enumerate(imagePaths):
+            # load the image and extract the class label assuming
+            # that our path has the following format:
+            # path/to/dataset/{class}/{image}.jpg
+            image = cv2.imread(imagePath)
+            label = imagePath.split(os.path.sep)[-2]
+
+            #check to see if our preprocessors are not None
+            if self.preprocessors is not None:
+                    
+                # loop over the preprocessors and apply each to
+                # the image
+                for p in self.preprocessors:
+                    image = p.preprocess(image)
+            # treat our processed image as a 'feature vector'
+            # by updating the data list followed by the labels
+            data.append(image)
+            labels.append(label)
+        
+
+            # show an update every 'verbose' images
+            if verbose > 0 and i > 0 and (i+1) % verbose == 0:
+                print("[INFO] processed {}/{}".format(i + 1,  
+                      len(imagePaths)))
+
+            # return a tuple of the data and labels
+        return (np.array(data), np.array(labels))
 
 class ShallowNet:
     @staticmethod
@@ -68,53 +113,6 @@ class ShallowNet:
         # return the constructed network architecture
         return model
 
-class SimpleDatasetLoader:
-    def __init__(self, preprocessor=None):
-        # store the image preprocessor
-        self.preprocessor = preprocessor
-        
-        # if the preprocessors are None, initialize them as an
-        # empty list
-
-        if self.preprocessor is None:
-            self.preprocessor = []
-
-    def load(self, imagePaths, verbose=-1):
-        # initialize the list of features and labels
-        data = []
-        labels = []
-
-        # loop over the input images
-        for (i, imagePath) in enumerate(imagePaths):
-            # load the image and extract the class label assuming
-            # that our path has the following format:
-            # path/to/dataset/{class}/{image}.jpg
-            image = cv2.imread(imagePath)
-            label = imagePath.split(os.path.sep)[-2]
-
-            #check to see if our preprocessors are not None
-            if self.preprocessor is not None:
-                    
-                # loop over the preprocessors and apply each to
-                # the image
-                for p in self.preprocessor:
-                    image = p.preprocess(image)
-            # treat our processed image as a 'feature vector'
-            # by updating the data list followed by the labels
-            data.append(image)
-            labels.append(label)
-        
-
-            # show an update every 'verbose' images
-            if verbose > 0 and i > 0 and (i+1) % verbose == 0:
-                print("[INFO] processed {}/{}".format(i + 1,  
-                      len(imagePaths)))
-
-            # return a tuple of the data and labels
-        return (np.array(data), np.array(labels))
-
-
-
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--dataset", required=True, 
                 help='path to input dataset')
@@ -129,7 +127,7 @@ iap = ImageToArrayPreprocessor()
 
 # load the dataset from disk then scale the raw pixel 
 # intensities to the range[0, 1]
-sdl = SimpleDatasetLoader(preprocessor=[sp, iap])
+sdl = SimpleDatasetLoader(preprocessors=[sp, iap])
 (data, labels) = sdl.load(imagePaths, verbose=500)
 data = data.astype("float") / 255.0
 
@@ -143,7 +141,7 @@ print("[INFO] compiling model ...")
 opt = SGD(lr=0.005)
 model = ShallowNet.build(width=32, height=32, depth=3,
                         classes=3)
-model.compile(loss='categorical_crossentropy', optimizers=opt,
+model.compile(loss='categorical_crossentropy', optimizer=opt,
               metrics=["accuracy"])
 
 # train the network
@@ -163,8 +161,8 @@ plt.style.use("ggplot")
 plt.figure()
 plt.plot(np.arange(0, 100), H.history["loss"], label="train_loss")
 plt.plot(np.arange(0, 100), H.history["val_loss"], label="val_loss")
-plt.plot(np.arange(0, 100), H.history["acc"], label="train_acc")
-plt.plot(np.arange(0, 100), H.history["val_acc"], label="val_acc")
+plt.plot(np.arange(0, 100), H.history["accuracy"], label="train_acc")
+plt.plot(np.arange(0, 100), H.history["val_accuracy"], label="val_acc")
 plt.title("Training Loss and Accuracy")
 plt.xlabel("Epoch #")
 plt.ylabel("Loss/Accuracy")
