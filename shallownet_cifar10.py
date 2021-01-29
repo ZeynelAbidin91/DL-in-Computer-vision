@@ -1,48 +1,44 @@
-
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
-from pyimagesearch.preprocessing import ImageToArrayPreprocessor
-from pyimagesearch.preprocessing import SimplePreprocessor
-from pyimagesearch.datasets import SimpleDatasetLoader
+# pyimagesearch.preprocessing import ImageToArrayPreprocessor
+#from pyimagesearch.preprocessing import SimplePreprocessor
+#from pyimagesearch.datasets import SimpleDatasetLoader
 from pyimagesearch.nn.conv import ShallowNet
 from keras.optimizers import SGD
+from keras.datasets import cifar10
 from imutils import paths
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 
-
+'''
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--dataset", required=True, 
                 help='path to input dataset')
-ap.add_argument('-m', '--model', required=True, 
-                help='path to load model')
 args = vars(ap.parse_args())
+'''
 
 # grab the list of images that we'll be describing
-print("[INFO] loading images...")
-imagePaths = list(paths.list_images(args["dataset"]))
+print("[INFO] loading cifar-10 dataset...")
+((trainX, trainY), (testX, testY)) = cifar10.load_data()
 
-sp = SimplePreprocessor(32, 32)
-iap = ImageToArrayPreprocessor()
+trainX = trainX.astype('float') / 255.0
+testX = testX.astype('float') / 255.0
 
-# load the dataset from disk then scale the raw pixel 
-# intensities to the range[0, 1]
-sdl = SimpleDatasetLoader(preprocessors=[sp, iap])
-(data, labels) = sdl.load(imagePaths, verbose=500)
-data = data.astype("float") / 255.0
+lb = LabelBinarizer()
 
-(trainX, testX, trainY, testY) = train_test_split(data, labels,
-    test_size=0.25, random_state=42)
+trainY = lb.fit_transform(trainY)
+testY = lb.fit_transform(testY)
 
-trainY = LabelBinarizer().fit_transform(trainY)
-testY = LabelBinarizer().fit_transform(testY)
+# initialize the label names for the CIFAR-10 dataset
+labelNames = ["airplane", "automobile", "bird", "cat", "deer",
+"dog", "frog", "horse", "ship", "truck"]
 
 print("[INFO] compiling model ...")
 opt = SGD(lr=0.005)
 model = ShallowNet.build(width=32, height=32, depth=3,
-                        classes=3)
+                        classes=10)
 model.compile(loss='categorical_crossentropy', optimizer=opt,
               metrics=["accuracy"])
 
@@ -50,11 +46,6 @@ model.compile(loss='categorical_crossentropy', optimizer=opt,
 print("[INFO] training network...")
 H = model.fit(trainX, trainY, validation_data=(testX, testY),
               batch_size=32, epochs=100, verbose=1)
-              
-# saving model
-print('[INFO] saving model...')
-model.save(args['model'])
-
 
 # evaluate the network
 print("[INFO] evaluating network...")
