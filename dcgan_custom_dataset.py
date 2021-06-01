@@ -8,7 +8,7 @@ if gpus:
   except RuntimeError as e:
     print(e)
 
-from pyimagesearch.dcgan import DCGAN
+from dcgan import DCGAN
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.optimizers import Adam
@@ -72,27 +72,19 @@ def preprocess_imgs(set_name, img_size):
         set_new.append(preprocess_input(img))
     return np.array(set_new)
 
-TRAIN_DIR = 'evalution_of_pre-trained_networks_on_brain_tumor_dataset/TRAIN/'
-TEST_DIR = 'evalution_of_pre-trained_networks_on_brain_tumor_dataset/TEST/'
-VAL_DIR = 'evalution_of_pre-trained_networks_on_brain_tumor_dataset/VAL/'
+NO_DIR = '/no/'
 IMG_SIZE = (224, 224)
 
-X_train, y_train, labels = load_data(TRAIN_DIR, IMG_SIZE)
-X_test, y_test, _ = load_data(TEST_DIR, IMG_SIZE)
-X_val, y_val, _ = load_data(VAL_DIR, IMG_SIZE)
+X_train, _, _ = load_data(NO_DIR, IMG_SIZE)
 
 X_train_prep = preprocess_imgs(set_name=X_train, img_size=IMG_SIZE)
-X_test_prep = preprocess_imgs(set_name=X_test, img_size=IMG_SIZE)
-X_val_prep = preprocess_imgs(set_name=X_val, img_size=IMG_SIZE)
-
-
 
 # load the Fashion MNIST dataset and stack the training and testing
 # data points so we have additional training data
 """print("[INFO] loading MNIST dataset...")
 ((trainX, _), (testX, _)) = fashion_mnist.load_data()"""
 print(X_train.shape)
-trainImages = np.concatenate([X_train_prep, X_test_prep, X_val_prep])
+trainImages = X_train_prep
 print(trainImages.shape)
 
 # add in an extra dimension for the channel and scale the images

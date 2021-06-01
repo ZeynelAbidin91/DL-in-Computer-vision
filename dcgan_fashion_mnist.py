@@ -31,7 +31,11 @@ INIT_LR = 2e-4
 # data points so we have additional training data
 print("[INFO] loading MNIST dataset...")
 ((trainX, _), (testX, _)) = fashion_mnist.load_data()
+#print(type(trainX), testX.shape)
 trainImages = np.concatenate([trainX, testX])
+#print(trainImages.shape)
+#cv2.imshow('image', trainImages[45])
+#cv2.waitKey(0)
 
 # add in an extra dimension for the channel and scale the images
 # into the range [-1, 1] (which is the range of the tanh function)
@@ -137,4 +141,4 @@ for epoch in range(0, NUM_EPOCHS):
 			vis = build_montages(images, (28, 28), (16, 16))[0]
 			# write the visualization to disk
 			p = os.path.sep.join(p)
-			cv2.imwrite(p, vis)   
+			cv2.imwrite(p, vis)  

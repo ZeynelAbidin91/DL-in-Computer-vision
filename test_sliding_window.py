@@ -17,9 +17,10 @@ image = cv2.imread(args['image'])
 (winW, winH) = (args['width'], args['height'])
 
 # loop over the image pyramid
+count_window = 0 
 for layer in pyramid(image, scale=args['scale']):
     # loop over the sliding window for each layer of the pyramid
-    for (x, y, window) in sliding_window(layer, stepSize=32, windowSize=(winW, winH)):
+    for (x, y, window) in sliding_window(layer, stepSize=10, windowSize=(winW, winH)):
         # if the current window does not meet our desired window size, ignore it
         if window.shape[0] != winH or window.shape[1] != winW:
             continue
@@ -31,8 +32,10 @@ for layer in pyramid(image, scale=args['scale']):
         clone = layer.copy()
         cv2.rectangle(clone, (x, y), (x + winW, y + winH), (0, 255, 0), 2)
         cv2.imshow("Window", clone)
+        count_window += 1
     
         # normally we would leave out this line, but let's pause execution
 		# of our script so we can visualize the window
         cv2.waitKey(1)
         time.sleep(0.025)
+print(count_window)
