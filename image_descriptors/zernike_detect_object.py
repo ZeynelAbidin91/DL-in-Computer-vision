@@ -36,10 +36,49 @@ def describe_shapes(image):
 
         # compute Zernike Moments for the ROI and update the list
         # of shape features
-        features = mohatas.features.zernike_moments(roi, cv2.minEnclosingCircle(c[1],
-        degree=8))
+        features = mahotas.features.zernike_moments(roi, cv2.minEnclosingCircle(c)[1],
+        degree=8)
         shapeFeatures.append(features)
 
     # return a tuple of the contours and shapes
     return (cnts, shapeFeatures)
+
+image = cv2.imread("checkmarkkk.jpg")
+cnts, features = describe_shapes(image)
+print(features)
     
+'''
+    # load the reference image containing the object we want to detect,
+# then describe the game region
+refImage = cv2.imread("pokemon_red.png")
+(_, gameFeatures) = describe_shapes(refImage)
+# load the shapes image, then describe each of the images in the image
+shapesImage = cv2.imread("shapes.png")
+(cnts, shapeFeatures) = describe_shapes(shapesImage)
+# compute the Euclidean distances between the video game features
+# and all other shapes in the second image, then find index of the
+# smallest distance
+D = dist.cdist(gameFeatures, shapeFeatures)
+i = np.argmin(D)
+
+# loop over the contours in the shapes image
+for (j, c) in enumerate(cnts):
+	# if the index of the current contour does not equal the index
+	# contour of the contour with the smallest distance, then draw
+	# it on the output image
+	if i != j:
+		box = cv2.minAreaRect(c)
+		box = np.int0(cv2.cv.BoxPoints(box) if imutils.is_cv2() else cv2.boxPoints(box))
+		cv2.drawContours(shapesImage, [box], -1, (0, 0, 255), 2)
+# draw the bounding box around the detected shape
+box = cv2.minAreaRect(cnts[i])
+box = np.int0(cv2.cv.BoxPoints(box) if imutils.is_cv2() else cv2.boxPoints(box))
+cv2.drawContours(shapesImage, [box], -1, (0, 255, 0), 2)
+(x, y, w, h) = cv2.boundingRect(cnts[i])
+cv2.putText(shapesImage, "FOUND!", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9,
+	(0, 255, 0), 3)
+# show the output images
+cv2.imshow("Input Image", refImage)
+cv2.imshow("Detected Shapes", shapesImage)
+cv2.waitKey(0)
+'''
