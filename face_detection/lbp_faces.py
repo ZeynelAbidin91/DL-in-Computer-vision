@@ -30,7 +30,7 @@ le = LabelEncoder()
 le.fit_transform(training.target)
 
 
-# LBP face recognizer for OpenCV 2.4
+# LBP face recognizer for OpenCV 3
 recognizer = cv2.face.LBPHFaceRecognizer_create(radius=2, neighbors=16, grid_x=3, grid_y=3)
 
 # train the Local Binary Pattern face recognizer
